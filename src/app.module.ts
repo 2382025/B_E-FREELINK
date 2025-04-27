@@ -8,7 +8,10 @@ import { AppService } from './app.service';
 import { AuthGuard } from './auth/auth.guard';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { PostsModule } from './posts/posts.module';
+import { ClientModule } from './clients/clients.module'; // Import ClientModule
+import { ProjectsModule } from './projects/projects.module'; // Import ProjectModule
+import { InvoicesModule } from './invoices/invoices.module'; // Import InvoiceModule
+import { NotesModule } from './notes/notes.module';
 
 @Module({
   imports: [
@@ -33,7 +36,10 @@ import { PostsModule } from './posts/posts.module';
     }),
     AuthModule,
     UserModule,
-    PostsModule
+    ClientModule, 
+    NotesModule,
+    ProjectsModule, 
+    InvoicesModule
   ],
   controllers: [AppController],
   providers: [

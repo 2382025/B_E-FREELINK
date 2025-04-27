@@ -1,14 +1,13 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreatePostsTable1743923426639 implements MigrationInterface {
+export class CreateNotesTable1743923426639 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-          CREATE TABLE posts (
+          CREATE TABLE notes (
               id SERIAL PRIMARY KEY,
               user_id INTEGER NOT NULL,
               title VARCHAR(255) NOT NULL,
               content TEXT,
-              image_url TEXT,
               created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
               updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
@@ -21,6 +20,6 @@ export class CreatePostsTable1743923426639 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE posts;`)
+    await queryRunner.query(`DROP TABLE notes;`)
   }
 }

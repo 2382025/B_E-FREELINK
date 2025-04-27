@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity('posts')
-export class Posts {
+@Entity('notes')
+export class Notes {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -13,9 +13,6 @@ export class Posts {
 
   @Column()
   content: string;
-
-  @Column()
-  image_url: string;
 
   @CreateDateColumn()
   created_at: Date;
