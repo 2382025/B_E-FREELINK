@@ -28,6 +28,8 @@ export class InvoicesController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async create(@Req() request: Request, @Body() createInvoiceDTO: CreateInvoiceDTO) {
+    console.log('Membuat invoice baru dengan data:', createInvoiceDTO);
+    
     const invoice: Invoices = new Invoices();
     const userJwtPayload: JwtPayloadDto = request['user'];
     invoice.user_id = userJwtPayload.sub;
@@ -37,7 +39,10 @@ export class InvoicesController {
     invoice.payment_status = createInvoiceDTO.payment_status;
     invoice.payment_method = createInvoiceDTO.payment_method;
     invoice.issue_date = createInvoiceDTO.issue_date;
-    return await this.invoicesService.save(invoice);
+    
+    const savedInvoice = await this.invoicesService.save(invoice);
+    console.log('Invoice berhasil dibuat:', savedInvoice);
+    return savedInvoice;
   }
 
   @Get()
@@ -66,7 +71,7 @@ export class InvoicesController {
     const userJwtPayload: JwtPayloadDto = request['user'];
     const invoice = await this.invoicesService.findByUserIdAndInvoiceId(userJwtPayload.sub, id);
     if (!invoice) {
-      throw new NotFoundException(`Invoice with ID ${id} not found`);
+      throw new NotFoundException(`Invoice dengan ID ${id} tidak ditemukan`);
     }
     return invoice;
   }
@@ -81,21 +86,28 @@ export class InvoicesController {
     @Param('id') id: number,
     @Body() createInvoiceDTO: CreateInvoiceDTO,
   ) {
+    console.log('Mengupdate invoice dengan ID:', id, 'dengan data:', createInvoiceDTO);
+    
     const userJwtPayload: JwtPayloadDto = request['user'];
     const invoice = await this.invoicesService.findByUserIdAndInvoiceId(
       userJwtPayload.sub,
       id,
     );
+    
     if (!invoice) {
-      throw new NotFoundException(`Invoice with ID ${id} not found`);
+      throw new NotFoundException(`Invoice dengan ID ${id} tidak ditemukan`);
     }
+
     invoice.project_id = createInvoiceDTO.project_id;
     invoice.client_id = createInvoiceDTO.client_id;
     invoice.amount = createInvoiceDTO.amount;
     invoice.payment_status = createInvoiceDTO.payment_status;
     invoice.payment_method = createInvoiceDTO.payment_method;
     invoice.issue_date = createInvoiceDTO.issue_date;
-    return await this.invoicesService.save(invoice);
+
+    const updatedInvoice = await this.invoicesService.save(invoice);
+    console.log('Invoice berhasil diupdate:', updatedInvoice);
+    return updatedInvoice;
   }
 
   @Delete(':id')
@@ -104,14 +116,19 @@ export class InvoicesController {
   @ApiResponse({ status: 200, description: 'Invoice deleted successfully' })
   @ApiResponse({ status: 404, description: 'Invoice not found' })
   async deleteOne(@Req() request: Request, @Param('id') id: number) {
+    console.log('Menghapus invoice dengan ID:', id);
+    
     const userJwtPayload: JwtPayloadDto = request['user'];
     const invoice = await this.invoicesService.findByUserIdAndInvoiceId(
       userJwtPayload.sub,
       id,
     );
+    
     if (!invoice) {
-      throw new NotFoundException(`Invoice with ID ${id} not found`);
+      throw new NotFoundException(`Invoice dengan ID ${id} tidak ditemukan`);
     }
-    return await this.invoicesService.deleteById(id);
+    
+    await this.invoicesService.deleteById(id);
+    return { message: 'Invoice berhasil dihapus' };
   }
 }

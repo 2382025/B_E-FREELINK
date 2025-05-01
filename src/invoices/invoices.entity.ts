@@ -10,10 +10,10 @@ export class Invoices {
   @Column()
   user_id: number;
 
-  @Column()
+  @Column({ nullable: false })
   project_id: number;
 
-  @Column()
+  @Column({ nullable: false })
   client_id: number;
 
   @Column()
@@ -35,12 +35,20 @@ export class Invoices {
   updated_at: Date;
 
   // Relasi ke Project
-  @ManyToOne(() => Project, project => project.invoices)
+  @ManyToOne(() => Project, project => project.invoices, {
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
+    eager: true
+  })
   @JoinColumn({ name: 'project_id' })
   project: Project;
 
   // Relasi ke Client
-  @ManyToOne(() => Client, client => client.invoices)
+  @ManyToOne(() => Client, client => client.invoices, {
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
+    eager: true
+  })
   @JoinColumn({ name: 'client_id' })
   client: Client;
 }

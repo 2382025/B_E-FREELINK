@@ -13,7 +13,7 @@ export class Project {
   @Column()
   project_name: string;
 
-  @Column()
+  @Column({ nullable: false })
   client_id: number;
 
   @Column()
@@ -29,7 +29,11 @@ export class Project {
   updated_at: Date;
 
   // Relasi ke Client
-  @ManyToOne(() => Client, client => client.projects)
+  @ManyToOne(() => Client, client => client.projects, {
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
+    eager: true
+  })
   @JoinColumn({ name: 'client_id' })
   client: Client;
 

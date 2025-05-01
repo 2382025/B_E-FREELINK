@@ -11,7 +11,71 @@ export class ProjectsService {
   ) {}
 
   async save(project: Project): Promise<Project> {
-    return this.projectsRepository.save(project);
+    console.log('Menyimpan project dengan data:', {
+      id: project.id,
+      client_id: project.client_id,
+      client_id_type: typeof project.client_id,
+      project_name: project.project_name,
+      due_date: project.due_date,
+      project_status: project.project_status
+    });
+    
+    // Pastikan client_id adalah number
+    if (project.client_id) {
+      project.client_id = Number(project.client_id);
+      console.log('client_id setelah konversi:', {
+        value: project.client_id,
+        type: typeof project.client_id
+      });
+    }
+
+    let savedProject: Project;
+
+    if (project.id) {
+      // Update project yang sudah ada
+      await this.projectsRepository
+        .createQueryBuilder()
+        .update(Project)
+        .set({
+          project_name: project.project_name,
+          client_id: project.client_id,
+          due_date: project.due_date,
+          project_status: project.project_status
+        })
+        .where("id = :id", { id: project.id })
+        .execute();
+
+      savedProject = project;
+    } else {
+      // Buat project baru
+      savedProject = await this.projectsRepository.save(project);
+    }
+
+    // Reload project dengan relasi client
+    const reloadedProject = await this.projectsRepository.findOne({
+      where: { id: savedProject.id },
+      relations: ['client']
+    });
+
+    if (!reloadedProject) {
+      console.log('Project tidak ditemukan setelah disimpan');
+      return savedProject;
+    }
+
+    console.log('Project setelah reload:', {
+      id: reloadedProject.id,
+      client_id: reloadedProject.client_id,
+      client_id_type: typeof reloadedProject.client_id,
+      project_name: reloadedProject.project_name,
+      due_date: reloadedProject.due_date,
+      project_status: reloadedProject.project_status,
+      client: reloadedProject.client ? {
+        id: reloadedProject.client.id,
+        name: reloadedProject.client.client_name
+      } : null
+    });
+
+    return reloadedProject;
   }
 
   async findByUserId(
@@ -26,7 +90,8 @@ export class ProjectsService {
       order: {
         created_at: 'DESC',
       },
-      relations: ['client'], // <-- Perbaiki: Pastikan join relasi client
+      relations: ['client'],
+      cache: false // Force refresh
     });
   }
 
@@ -36,11 +101,24 @@ export class ProjectsService {
         user_id: userId,
         id: projectId,
       },
-      relations: ['client'], // <-- Perbaiki: Pastikan join relasi client
+      relations: ['client'],
+      cache: false // Force refresh
     });
+
     if (!project) {
+      console.log('Project tidak ditemukan:', { userId, projectId });
       return new Project();
     }
+
+    console.log('Project ditemukan:', {
+      id: project.id,
+      client_id: project.client_id,
+      client: project.client ? {
+        id: project.client.id,
+        name: project.client.client_name
+      } : null
+    });
+
     return project;
   }
 

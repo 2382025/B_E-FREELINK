@@ -74,19 +74,68 @@ export class ProjectController {
     @Param('id') id: number,
     @Body() createProjectDTO: CreateProjectDTO,
   ) {
+    console.log('Data update yang diterima:', {
+      id,
+      client_id: createProjectDTO.client_id,
+      project_name: createProjectDTO.project_name,
+      due_date: createProjectDTO.due_date,
+      project_status: createProjectDTO.project_status
+    });
+
     const userJwtPayload: JwtPayloadDto = request['user'];
     const project: Project = await this.projectsService.findByUserIdAndProjectId(
       userJwtPayload.sub,
       id,
     );
-    if (project.id == null) {
-      throw new NotFoundException();
+    
+    if (!project || project.id == null) {
+      throw new NotFoundException('Project not found');
     }
+
+    console.log('Project sebelum update:', {
+      id: project.id,
+      client_id: project.client_id,
+      project_name: project.project_name,
+      due_date: project.due_date,
+      project_status: project.project_status,
+      client: project.client ? {
+        id: project.client.id,
+        name: project.client.client_name
+      } : null
+    });
+
+    // Validasi dan update data
     project.project_name = createProjectDTO.project_name;
-    project.client_id = createProjectDTO.client_id;
+    project.client_id = Number(createProjectDTO.client_id); // Pastikan client_id adalah number
     project.due_date = createProjectDTO.due_date;
     project.project_status = createProjectDTO.project_status;
-    return await this.projectsService.save(project);
+
+    // Simpan perubahan
+    const updatedProject = await this.projectsService.save(project);
+    
+    // Reload project dengan relasi client
+    const reloadedProject = await this.projectsService.findByUserIdAndProjectId(
+      userJwtPayload.sub,
+      id,
+    );
+
+    if (!reloadedProject) {
+      throw new NotFoundException('Project not found after update');
+    }
+
+    console.log('Project setelah update:', {
+      id: reloadedProject.id,
+      client_id: reloadedProject.client_id,
+      project_name: reloadedProject.project_name,
+      due_date: reloadedProject.due_date,
+      project_status: reloadedProject.project_status,
+      client: reloadedProject.client ? {
+        id: reloadedProject.client.id,
+        name: reloadedProject.client.client_name
+      } : null
+    });
+
+    return reloadedProject;
   }
 
   @Delete(':id')
